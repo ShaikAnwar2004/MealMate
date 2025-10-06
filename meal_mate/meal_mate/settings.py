@@ -93,7 +93,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'meal_mate.meal_mate.wsgi.application'
+WSGI_APPLICATION = 'meal_mate.wsgi.application'
 
 
 # Database
