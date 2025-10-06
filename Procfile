@@ -1,2 +1,3 @@
-web: cd meal_mate && gunicorn meal_mate.wsgi:application --workers=2 --bind=0.0.0.0:$PORT
+web: gunicorn meal_mate.wsgi:application --chdir meal_mate --workers=2 --bind=0.0.0.0:$PORT
+
 
