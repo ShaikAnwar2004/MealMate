@@ -42,7 +42,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-y3@vqwajnq^%4$(z-(*u3_s*@p5!t@_1tsiulw2@zev%f$r6%k')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False').lower() in ['1', 'true', 'yes']
+# Default to True for local development; on Render we set DEBUG=False via env
+DEBUG = os.getenv('DEBUG', 'True').lower() in ['1', 'true', 'yes']
 
 # Render provides RENDER_EXTERNAL_HOSTNAME in env; also allow local dev
 _default_allowed_hosts = ['localhost', '127.0.0.1']
@@ -141,10 +142,22 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Use WhiteNoise for efficient static file serving in production
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Running behind Render's proxy (X-Forwarded-Proto)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# CSRF trusted origins for Render URL(s) and optional custom domains
+_render_external_hostname = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+CSRF_TRUSTED_ORIGINS = []
+if _render_external_hostname:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{_render_external_hostname}")
+_extra_csrf = os.getenv('CSRF_TRUSTED_ORIGINS')
+if _extra_csrf:
+    CSRF_TRUSTED_ORIGINS.extend([origin.strip() for origin in _extra_csrf.split(',') if origin.strip()])
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
