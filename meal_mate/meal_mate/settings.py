@@ -39,12 +39,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-y3@vqwajnq^%4$(z-(*u3_s*@p5!t@_1tsiulw2@zev%f$r6%k'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-y3@vqwajnq^%4$(z-(*u3_s*@p5!t@_1tsiulw2@zev%f$r6%k')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False').lower() in ['1', 'true', 'yes']
 
-ALLOWED_HOSTS = []
+# Render provides RENDER_EXTERNAL_HOSTNAME in env; also allow local dev
+_default_allowed_hosts = ['localhost', '127.0.0.1']
+_render_hostname = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+if _render_hostname:
+    _default_allowed_hosts.append(_render_hostname)
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', ','.join(_default_allowed_hosts)).split(',')
 
 
 # Application definition
@@ -61,6 +66,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -134,7 +140,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Use WhiteNoise for efficient static file serving in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

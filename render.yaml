@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: meal-mate
+    env: python
+    plan: free
+    region: oregon
+    buildCommand: |
+      cd meal_mate
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+      python manage.py migrate --noinput
+    startCommand: |
+      cd meal_mate && gunicorn meal_mate.wsgi --workers=2 --bind=0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DJANGO_SETTINGS_MODULE
+        value: meal_mate.settings
+      - key: DEBUG
+        value: "False"
+
