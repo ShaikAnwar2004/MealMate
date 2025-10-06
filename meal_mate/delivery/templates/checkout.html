@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+    <h1>Checkout</h1>
+    <br>
+    <h2>Welcome, {{ username }}</h2><br>
+
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% else %}
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Price</th>
+                <th>Total</th>
+                <th>Qty</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ci in cart_items %}
+            <tr>
+                <td>{{ ci.menu_item.name }}</td>
+                <td>₹{{ ci.menu_item.price }}</td>
+                <td>₹{{ ci.line_total }}</td>
+                <td>{{ ci.quantity }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <h3>Total: ₹{{ total_price }}</h3>
+    
+
+    <!-- Custom button -->
+    <button id="rzp-button" type="button">Pay with Razorpay</button>
+
+    <!-- Hidden fallback auto-render (in case custom binding fails) -->
+    <form id="rzp-fallback" style="display:none;">
+        <script src="https://checkout.razorpay.com/v1/checkout.js"
+                data-key="{{ razorpay_key_id }}"
+                data-order_id="{{ order_id }}"
+                data-name="Meal Mate"
+                data-description="Order Payment"
+                data-theme.color="#528FF0">
+        </script>
+        <input type="hidden" name="hidden" value="hidden">
+    </form>
+    {% endif %}
+
+    <script>
+        console.log('Razorpay key:', '{{ razorpay_key_id }}');
+        console.log('Razorpay order_id:', '{{ order_id }}');
+
+        function startPayment(event) {
+            if (event) { event.preventDefault(); }
+            if (!window.Razorpay) {
+                // Show fallback auto-render widget
+                var fallback = document.getElementById('rzp-fallback');
+                if (fallback) fallback.style.display = 'block';
+                return false;
+            }
+
+            var options = {
+                key: '{{ razorpay_key_id }}',
+                order_id: '{{ order_id }}',
+                name: 'Meal Mate',
+                description: 'Order Payment',
+                handler: function () {
+                    window.location.href = "{% url 'orders' username %}";
+                },
+                theme: { color: '#528FF0' },
+                prefill: { name: '{{ username }}' }
+            };
+
+            var rzp = new Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                alert('Payment failed: ' + (response.error && response.error.description ? response.error.description : 'Unknown'));
+            });
+            rzp.open();
+            return false;
+        }
+
+        document.getElementById('rzp-button').addEventListener('click', startPayment);
+    </script>
+    
+</body>
+</html>
