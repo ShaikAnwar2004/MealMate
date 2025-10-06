@@ -100,11 +100,27 @@ WSGI_APPLICATION = 'meal_mate.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database configuration for Railway
-if os.getenv('DATABASE_URL'):
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+# Check if we're on Railway (even without DATABASE_URL)
+IS_RAILWAY = os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('RAILWAY_PUBLIC_DOMAIN')
+
+if DATABASE_URL:
     # Production database (Railway PostgreSQL)
     import dj_database_url
     DATABASES = {
-        'default': dj_database_url.parse(os.getenv('DATABASE_URL'))
+        'default': dj_database_url.parse(DATABASE_URL)
+    }
+    print(f"Using PostgreSQL database: {DATABASE_URL[:20]}...")
+elif IS_RAILWAY:
+    # Force PostgreSQL on Railway even without DATABASE_URL
+    print("Railway detected but no DATABASE_URL found. Please add PostgreSQL database to your Railway project.")
+    # Fallback to SQLite temporarily
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
 else:
     # Development database (SQLite)
@@ -114,6 +130,7 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+    print("Using SQLite database for development")
 
 
 # Password validation
