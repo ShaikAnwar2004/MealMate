@@ -45,11 +45,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-y3@vqwajnq^%4$(z-(*u3_s*@p
 # Default to True for local development; on Render we set DEBUG=False via env
 DEBUG = os.getenv('DEBUG', 'True').lower() in ['1', 'true', 'yes']
 
-# Render provides RENDER_EXTERNAL_HOSTNAME in env; also allow local dev
-_default_allowed_hosts = ['localhost', '127.0.0.1']
-_render_hostname = os.getenv('RENDER_EXTERNAL_HOSTNAME')
-if _render_hostname:
-    _default_allowed_hosts.append(_render_hostname)
+# Allow Railway and local development
+_default_allowed_hosts = ['localhost', '127.0.0.1', 'web-production-2cb0f.up.railway.app']
+_railway_hostname = os.getenv('RAILWAY_PUBLIC_DOMAIN')
+if _railway_hostname:
+    _default_allowed_hosts.append(_railway_hostname)
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', ','.join(_default_allowed_hosts)).split(',')
 
 
